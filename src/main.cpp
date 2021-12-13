@@ -1,13 +1,17 @@
+//#include <intrinsics.h>
 #include <stm32f3xx.h>
 #include <stm32f303x8.h>
 #include <system_stm32f3xx.h>
 
+#include "gpio.h"
+
+
+#define F_CPU 8000000 // * MHz
+//#define delay_us(usecs) __delay_cycles((F_CPU/1000000)  *(usecs))
+
 /*Function prototypes*/
 void SystemClock_Config(void);
-void GPIO_Config(void);
-void Delay (uint32_t time);
-void GPIO_SetPin(uint16_t pin);
-void GPIO_ClearPin(uint16_t pin);
+void delay_ms(unsigned char millisecs);
 
 
 
@@ -18,28 +22,30 @@ int main(void)
   
   /*MCU init*/
   SystemClock_Config();
-  GPIO_Config();
+  gpioConfig();
+  gpioExtInterupt();
+  
   
   while(1)
   {
-		GPIOA->BSRR |= (1<<5); // Set the Pin PA5
-		GPIO_ClearPin(GPIO_ODR_5);
-		
-////		GPIOA->ODR = 1<<5;
-		GPIO_SetPin(GPIO_ODR_5);
-//		GPIOA->BSRR |= (1<<5) <<16;  // Clear the Pin PA5
-////		GPIOA->ODR &= ~(1<<5);
-//		Delay (10000000);  // random delay
+		gpioClearPin(GPIO_ODR_5);
+		for(int i = 0; i<50000; i++);
+		gpioSetPin(GPIO_ODR_5);
+		for(int i = 0; i<50000; i++);
   }
-
 }
 
 
 /*Function definition*/
-void Delay (uint32_t time)
-{
-	while (time--);  
-}
+
+//void delay_ms(unsigned char millisecs)
+//{
+//    while(millisecs--)
+//    {
+//      delay_us(1000);
+//    }
+//}
+
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -74,25 +80,3 @@ void SystemClock_Config(void)
 	while (!(RCC->CFGR & ~(RCC_CFGR_SWS_HSI)));
 }
 
-void GPIO_Config(void)
-{
-//  RCC->AHBENR |= (1<<17);  // Enable the GPIOA clock IOPAEN: I/O port A clock enable
-//  GPIOA->MODER |= (1<<0);  // pin PA5(bits 11:10) as Output (01)
-//  GPIOA->OTYPER &= ~(1<<0);  // bit 5=0 --> Output push pull
-//  GPIOA->OSPEEDR &= ~ (1<<1);  // Pin PA5 (bits 11:10) as Fast Speed (1:0)
-//  GPIOA->PUPDR &= ~((1<<0) | (1<<1));  // Pin PA5 (bits 11:10) are 0:0 --> no pull up or pulldown
-
-  GPIOA->MODER &= ~GPIO_MODER_MODER5;
-  GPIOA->MODER |= GPIO_MODER_MODER5_0;
-  
-}
-
-void GPIO_SetPin(uint16_t pin)
-{
-	GPIOA->ODR |= pin;
-}
-
-void GPIO_ClearPin(uint16_t pin)
-{
-	GPIOA->ODR &= ~pin;
-}
